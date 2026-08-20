@@ -8,7 +8,7 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
@@ -153,9 +153,9 @@ function AppChrome() {
 
       <main id="app-main" className="relative">
         <AnimatePresence mode="wait" initial={false}>
-          <div key={pathname}>
+          <motion.div key={pathname} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
             <Outlet />
-          </div>
+          </motion.div>
         </AnimatePresence>
       </main>
 
