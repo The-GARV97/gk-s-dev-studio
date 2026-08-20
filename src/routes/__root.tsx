@@ -4,13 +4,21 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
+import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { BootSplash } from "@/components/BootSplash";
+import { Dock } from "@/components/Dock";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { Toaster } from "@/components/ui/sonner";
+import { profile } from "@/data/portfolio";
+
 
 function NotFoundComponent() {
   return (
@@ -77,19 +85,19 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: `${profile.name} — ${profile.role}` },
+      { name: "description", content: profile.subheadline },
+      { name: "author", content: profile.name },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
+      { rel: "stylesheet", href: appCss },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: appCss,
+        href: "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap",
       },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
     ],
@@ -114,13 +122,58 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+function AppChrome() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  return (
+    <div className="relative min-h-screen overflow-x-hidden">
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.35] grid-backdrop"
+        aria-hidden
+      />
+      <a
+        href="#app-main"
+        className="sr-only rounded-2xl focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[60] focus:neu focus:px-4 focus:py-2 focus:text-sm"
+      >
+        Skip to content
+      </a>
+
+      <header className="fixed inset-x-0 top-0 z-40 flex items-center justify-between px-4 py-4 sm:px-6">
+        <Link
+          to="/"
+          className="neu-sm flex items-center gap-2.5 rounded-2xl px-3 py-2 text-sm font-semibold tracking-tight"
+        >
+          <span className="flex size-7 items-center justify-center rounded-xl bg-primary font-mono text-[11px] text-primary-foreground">
+            GK
+          </span>
+          <span className="hidden sm:inline">{profile.name}</span>
+        </Link>
+        <ThemeToggle />
+      </header>
+
+      <main id="app-main" className="relative">
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div key={pathname} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
+            <Outlet />
+          </motion.div>
+        </AnimatePresence>
+      </main>
+
+      <Dock />
+      <BootSplash />
+      <Toaster position="top-center" />
+    </div>
+  );
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <AppChrome />
     </QueryClientProvider>
   );
 }
+
